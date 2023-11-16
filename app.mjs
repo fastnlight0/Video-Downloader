@@ -106,6 +106,8 @@ function downloadVideo(req, res, audioOnly) {
                 let targetFileFormat = req.headers["format"];
                 if (targetFileFormat == "notwebm" && ress == "webm") {
                     targetFileFormat = "mp4";
+                } else {
+                    targetFileFormat = ress;
                 }
                 if (targetFileFormat != "keep" && targetFileFormat != ress) {
                     proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n`;
