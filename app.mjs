@@ -26,7 +26,7 @@ let safeToDownload = true;
 
 let fileFormat = "";
 let videoName = "";
-
+let contentType = "";
 createServer(async (req, res) => {
     if (req.url == "/") {
         res.end(readFileSync("./index.html", "utf8"));
@@ -53,6 +53,13 @@ createServer(async (req, res) => {
         downloadVideo(req, res, false);
     } else if (req.url.startsWith("/dlaud/")) {
         downloadVideo(req, res, true);
+    } else if (req.url == "/prod") {
+        res.writeHead(200, { "Content-Type": contentType });
+        res.end(readFileSync("downloads/file." + fileFormat));
+        for (const file of await promises.readdir("downloads")) {
+            await promises.unlink(path.join("downloads", file));
+        }
+        safeToDownload = true;
     }
 }).listen(process.env.PORT || 80);
 
@@ -124,30 +131,16 @@ function downloadVideo(req, res, audioOnly) {
                         proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n` + data;
                     });
                     child.on("close", async (code) => {
-                        if (code == 0) {
-                            fileFormat = targetFileFormat;
-                            proxy.output = "Downloaded file! Returning file...";
-                        } else {
-                            fileFormat = ress;
-                            proxy.output = `Failed to convert file, returning ${ress}...`;
-                        }
-                        res.writeHead(200, { "Content-Type": "video/" + fileFormat });
-                        res.end(readFileSync("downloads/file." + fileFormat));
-                        for (const file of await promises.readdir("downloads")) {
-                            await promises.unlink(path.join("downloads", file));
-                        }
-                        safeToDownload = true;
+                        fileFormat = code == 0 ? targetFileFormat : ress;
+                        contentType = (audioOnly ? "audio/" : "video/") + fileFormat;
                     });
                 } else {
-                    proxy.output = "Downloaded file! Returning file...";
-                    res.writeHead(200, { "Content-Type": (audioOnly ? "audio/" : "video/") + ress });
-                    res.end(readFileSync("downloads/file." + ress));
-                    for (const file of await promises.readdir("downloads")) {
-                        await promises.unlink(path.join("downloads", file));
-                    }
-                    safeToDownload = true;
+                    proxy.output = "Done!";
+                    contentType = (audioOnly ? "audio/" : "video/") + fileFormat;
                 }
             });
+            res.writeHead(202, { "Content-Type": "text/plain" })
+            res.end("Downloading...");
         } catch (e) {
             res.writeHead(406, { "Content-Type": "text/plain" })
             res.end("Video not found");
@@ -155,7 +148,7 @@ function downloadVideo(req, res, audioOnly) {
             return;
         }
     } else {
-        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.writeHead(409, { "Content-Type": "text/plain" });
         res.end("A download is currently in progress. Please wait for it to finish.");
     }
 }
