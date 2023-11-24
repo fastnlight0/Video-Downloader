@@ -27,9 +27,18 @@ let safeToDownload = true;
 let fileFormat = "";
 let videoName = "";
 let contentType = "";
+
+for (const file of await promises.readdir("downloads")) {
+    await promises.unlink(path.join("downloads", file));
+}
+
 createServer(async (req, res) => {
     if (req.url == "/") {
+        res.writeHead(200, { "Content-Type": "text/html" });
         res.end(readFileSync("./index.html", "utf8"));
+    } else if (req.url == "/admin") {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(readFileSync("./admin.html", "utf8"));
     } else if (req.url.startsWith("/tim/")) {
         let urll = req.url.replace("/tim/", "");
         try {
@@ -60,6 +69,8 @@ createServer(async (req, res) => {
             await promises.unlink(path.join("downloads", file));
         }
         safeToDownload = true;
+    } else if (req.url == "/reset") {
+        execSync("pm2 restart VidDel");
     }
 }).listen(process.env.PORT || 80);
 

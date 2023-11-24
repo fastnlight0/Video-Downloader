@@ -446,7 +446,7 @@
                         string = string.replace(/(?:\r\n|\r|\n)/g, '<br>');
                         console.log(string);
                         document.getElementById("output").innerHTML = string;
-                        if (string === "Done!"){
+                        if (string === "Done!") {
                             fetch("prod").then(res => res.blob()).then(blob => {
                                 fetch("format").then(res => res.text()).then(text => {
                                     var url = window.URL.createObjectURL(blob);
