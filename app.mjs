@@ -74,9 +74,12 @@ createServer(async (req, res) => {
     }
 }).listen(process.env.PORT || 80);
 
-function downloadVideo(req, res, audioOnly) {
+async function downloadVideo(req, res, audioOnly) {
     if (safeToDownload) {
         safeToDownload = false;
+        for (const file of await promises.readdir("downloads")) {
+            await promises.unlink(path.join("downloads", file));
+        }
         let urll = req.url.replace(audioOnly ? "/dlaud/" : "/dl/", "");
         let args = [];
         if (audioOnly) {
