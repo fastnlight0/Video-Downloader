@@ -147,10 +147,11 @@ async function downloadVideo(req, res, audioOnly) {
                     child.on("close", async (code) => {
                         fileFormat = code == 0 ? targetFileFormat : ress;
                         contentType = (audioOnly ? "audio/" : "video/") + fileFormat;
+                        proxy.output = "Done!";
                     });
                 } else {
-                    proxy.output = "Done!";
                     contentType = (audioOnly ? "audio/" : "video/") + fileFormat;
+                    proxy.output = "Done!";
                 }
             });
             res.writeHead(202, { "Content-Type": "text/plain" })
