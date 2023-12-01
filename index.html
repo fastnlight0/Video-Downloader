@@ -435,7 +435,7 @@
                     }
                     return res.blob();
                 })
-                fetch("stream").then(res => res.body).then(body => {
+                fetch("stream", {headers: {main: true}}).then(res => res.body).then(body => {
                     const reader = body.getReader();
                     reader.read().then(function processText({ done, value }) {
                         if (done) {

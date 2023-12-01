@@ -53,6 +53,11 @@ createServer(async (req, res) => {
     } else if (req.url == "/stream") {
         res.writeHead(200, { "Content-Type": "text/event-stream", "cache-control": "no-cache", "Connection": "keep-alive" })
         myStream.pipe(res);
+        res.addListener("close", () => {
+            if (req.headers["main"] == "true" && safeToDownload == false) {
+                execSync("pm2 restart VidDel");
+            }
+        });
     } else if (req.url == "/format") {
         res.writeHead(200, { "Content-Type": "text/plain" })
         res.end(videoName + "." + fileFormat);
