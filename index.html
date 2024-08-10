@@ -447,6 +447,7 @@
                         console.log(string);
                         document.getElementById("output").innerHTML = string;
                         if (string === "Done!") {
+                            document.getElementById("mainTxt").innerHTML = "Download complete! Please wait as the file is being transferred to your device.";
                             fetch("prod").then(res => res.blob()).then(blob => {
                                 fetch("format").then(res => res.text()).then(text => {
                                     var url = window.URL.createObjectURL(blob);
