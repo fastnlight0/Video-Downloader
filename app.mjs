@@ -6,11 +6,11 @@ import path from "path";
 
 const myStream = new Readable({
     objectMode: true,
-    read() { }
+    read() {},
 });
 
 let output = {
-    output: ""
+    output: "",
 };
 
 const proxy = new Proxy(output, {
@@ -19,7 +19,7 @@ const proxy = new Proxy(output, {
         console.log(value);
         target[prop] = value;
         return true;
-    }
+    },
 });
 
 let safeToDownload = true;
@@ -39,27 +39,38 @@ createServer(async (req, res) => {
     } else if (req.url == "/admin") {
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(readFileSync("./admin.html", "utf8"));
+    } else if (req.url == "/js/script.js") {
+        res.writeHead(200, { "Content-Type": "application/javascript" });
+        res.end(readFileSync("./js/script.js", "utf8"));
     } else if (req.url.startsWith("/tim/")) {
         let urll = req.url.replace("/tim/", "");
+        let regex = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
+        if (!regex.test(urll)) {
+            res.writeHead(406, { "Content-Type": "text/plain" });
+            res.end("Invalid URL");
+            safeToDownload = true;
+            return;
+        }
         try {
-            const result = execSync("yt-dlp --print \"%(channel)s - %(duration>%H:%M:%S)s - %(title)s\" " + urll);
+            const result = execSync('yt-dlp --print "%(channel)s - %(duration>%H:%M:%S)s - %(title)s" ' + urll);
             videoName = result.toString("utf8").split(" - ").slice(2).join(" - ").trim();
-            res.writeHead(200, { "Content-Type": "text/plain" })
+            res.writeHead(200, { "Content-Type": "text/plain" });
             res.end(result.toString("utf8"));
         } catch (e) {
-            res.writeHead(406, { "Content-Type": "text/plain" })
+            res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Video not found");
         }
     } else if (req.url == "/stream") {
-        res.writeHead(200, { "Content-Type": "text/event-stream", "cache-control": "no-cache", "Connection": "keep-alive" })
+        res.writeHead(200, { "Content-Type": "text/event-stream", "cache-control": "no-cache", Connection: "keep-alive" });
         myStream.pipe(res);
         res.addListener("close", () => {
             if (req.headers["main"] == "true" && safeToDownload == false) {
-                execSync("pm2 restart VidDel");
+                console.log("Recieved broken pipe. Exiting");
+                process.exit();
             }
         });
     } else if (req.url == "/format") {
-        res.writeHead(200, { "Content-Type": "text/plain" })
+        res.writeHead(200, { "Content-Type": "text/plain" });
         res.end(videoName + "." + fileFormat);
         fileFormat = "";
         videoName = "";
@@ -75,7 +86,23 @@ createServer(async (req, res) => {
         }
         safeToDownload = true;
     } else if (req.url == "/reset") {
-        execSync("pm2 restart VidDel");
+        process.exit();
+    } else if (req.url.startsWith("/listformats/")) {
+        let urll = req.url.replace("/listformats/", "");
+        try {
+            const result = execSync("yt-dlp -J " + urll);
+            const json = JSON.parse(result.toString("utf8")).formats;
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(json, ["format_id", "resolution", "format_note", "ext", "vbr", "abr", "vcodec", "acodec"]));
+        } catch (e) {
+            res.writeHead(406, { "Content-Type": "text/plain" });
+            res.end("Video not found");
+            console.log(e);
+            return;
+        }
+    } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("404: Page not found");
     }
 }).listen(process.env.PORT || 80);
 
@@ -94,16 +121,27 @@ async function downloadVideo(req, res, audioOnly) {
             const time = req.headers["time"].trim();
             let regex = /^\*((\d+:)?(\d+:)?\d+)-(((\d+:)?(\d+:)?\d+)|inf)$/;
             if (!regex.test(time)) {
-                res.writeHead(406, { "Content-Type": "text/plain" })
+                res.writeHead(406, { "Content-Type": "text/plain" });
                 res.end("Invalid time");
                 safeToDownload = true;
                 return;
             }
             args.push("--download-sections", time);
         }
+        if (req.headers["format"]) {
+            const format = req.headers["format"].trim();
+            let regex = /^(?:\d+(?:\+\d+)+)|(?:[a-zA-Z_*]+)$/;
+            if (!regex.test(urll)) {
+                res.writeHead(406, { "Content-Type": "text/plain" });
+                res.end("Invalid format");
+                safeToDownload = true;
+                return;
+            }
+            args.push("-f", format);
+        }
         let regex = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
         if (!regex.test(urll)) {
-            res.writeHead(406, { "Content-Type": "text/plain" })
+            res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Invalid URL");
             safeToDownload = true;
             return;
@@ -111,17 +149,20 @@ async function downloadVideo(req, res, audioOnly) {
         args.push("-o", "downloads/file.%(ext)s", urll);
         try {
             const result = spawn("yt-dlp", args);
-            result.stdout.setEncoding('utf8');
+            result.stdout.setEncoding("utf8");
             result.stdout.on("data", (data) => {
                 data = data.toString("utf8").trim();
                 proxy.output = data;
             });
-            result.stderr.setEncoding('utf8');
+            result.stderr.setEncoding("utf8");
             result.stderr.on("data", (data) => {
                 data = data.toString("utf8").trim();
                 proxy.output = data;
             });
-            result.on("close", async () => {
+            result.on("close", async (code) => {
+                if (!code == 0) {
+                    return;
+                }
                 const files = await promises.readdir("downloads");
                 if (files[0] == ".DS_Store") {
                     await promises.unlink(path.join("downloads", files[0]));
@@ -129,7 +170,7 @@ async function downloadVideo(req, res, audioOnly) {
                 }
                 fileFormat = files[0].split(".")[1];
                 const ress = fileFormat;
-                let targetFileFormat = req.headers["format"];
+                let targetFileFormat = req.headers["filetype"];
                 if (targetFileFormat == "notwebm" && ress == "webm") {
                     targetFileFormat = "mp4";
                 } else {
@@ -138,16 +179,33 @@ async function downloadVideo(req, res, audioOnly) {
                 if (targetFileFormat != "keep" && targetFileFormat != ress) {
                     proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n`;
                     let args = [];
-                    const child = spawn("ffmpeg", ["-y", "-v", "quiet", "-stats", "-fflags", "+genpts", "-i", "downloads/file." + ress, "-r", "24", "downloads/file." + targetFileFormat, "-hide_banner", "-loglevel", "error"]);
-                    child.stdout.setEncoding('utf8');
+                    const child = spawn("ffmpeg", [
+                        "-y",
+                        "-v",
+                        "quiet",
+                        "-stats",
+                        "-fflags",
+                        "+genpts",
+                        "-i",
+                        "downloads/file." + ress,
+                        "-r",
+                        "24",
+                        "downloads/file." + targetFileFormat,
+                        "-hide_banner",
+                        "-loglevel",
+                        "error",
+                    ]);
+                    child.stdout.setEncoding("utf8");
                     child.stdout.on("data", (data) => {
                         data = data.toString("utf8");
-                        proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n` + data;
+                        proxy.output =
+                            `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n` + data;
                     });
-                    child.stderr.setEncoding('utf8');
+                    child.stderr.setEncoding("utf8");
                     child.stderr.on("data", (data) => {
                         data = data.toString("utf8");
-                        proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n` + data;
+                        proxy.output =
+                            `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n` + data;
                     });
                     child.on("close", async (code) => {
                         fileFormat = code == 0 ? targetFileFormat : ress;
@@ -159,10 +217,10 @@ async function downloadVideo(req, res, audioOnly) {
                     proxy.output = "Done!";
                 }
             });
-            res.writeHead(202, { "Content-Type": "text/plain" })
+            res.writeHead(202, { "Content-Type": "text/plain" });
             res.end("Downloading...");
         } catch (e) {
-            res.writeHead(406, { "Content-Type": "text/plain" })
+            res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Video not found");
             safeToDownload = true;
             return;
