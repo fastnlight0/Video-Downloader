@@ -256,6 +256,32 @@
             tfoot {
                 background-color: #f7f7f7;
             }
+
+            .progress-container {
+                width: 80%;
+                max-width: 600px;
+                height: 20px;
+                background-color: #ddd;
+                border-radius: 8px;
+                margin: 20px auto;
+                box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+
+            .progress-bar {
+                height: 100%;
+                width: 0;
+                background-color: #4caf50;
+                border-radius: 8px;
+                transition: width 0.4s ease-in-out;
+            }
+
+            .progress-label {
+                font-size: 1rem;
+                color: #333;
+                margin-top: 10px;
+                text-align: center;
+                font-weight: bold;
+            }
         </style>
     </head>
 
@@ -282,6 +308,10 @@
         >
             Initializing download...
         </div>
+        <div id="dlProgContainer" class="progress-container" hidden>
+            <div id="dlProg" class="progress-bar" style="width: 0%"></div>
+        </div>
+        <div id="dlProgLabel" class="progress-label" hidden>0%</div>
         <input id="durl" type="text" placeholder="URL" />
         <br />
         <button id="db">Download</button>

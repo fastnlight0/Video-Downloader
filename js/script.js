@@ -155,7 +155,7 @@ function dl(audioOnly) {
                 .then((res) => res.body)
                 .then((body) => {
                     const reader = body.getReader();
-                    reader.read().then(function processText({ done, value }) {
+                    reader.read().then(async function processText({ done, value }) {
                         if (done) {
                             console.log("Stream complete");
                             return;
@@ -167,20 +167,42 @@ function dl(audioOnly) {
                         if (string === "Done!") {
                             document.getElementById("mainTxt").innerHTML =
                                 "Download complete! Please wait as the file is being transferred to your device.";
-                            fetch("/prod")
-                                .then((res) => res.blob())
-                                .then((blob) => {
-                                    fetch("/format")
-                                        .then((res) => res.text())
-                                        .then((text) => {
-                                            reader.cancel();
-                                            var url = window.URL.createObjectURL(blob);
-                                            let dlBtn = document.getElementById("redownloada");
-                                            document.getElementById("redownload").hidden = false;
-                                            dlBtn.href = url;
-                                            dlBtn.download = text;
-                                            dlBtn.click();
-                                        });
+                            document.getElementById("dlProgContainer").hidden = false;
+                            document.getElementById("dlProg").hidden = false;
+                            document.getElementById("dlProgLabel").hidden = false;
+                            let response = await fetch("/prod");
+                            const reader = response.body.getReader();
+                            const contentLength = +response.headers.get("Content-Length");
+                            let receivedLength = 0;
+                            let chunks = [];
+                            while (true) {
+                                const { done, value } = await reader.read();
+
+                                if (done) {
+                                    break;
+                                }
+
+                                chunks.push(value);
+                                receivedLength += value.length;
+
+                                const percentComplete = receivedLength / contentLength * 100;
+                                console.log(`Received ${receivedLength} of ${contentLength} (${percentComplete}%)`);
+
+                                document.getElementById("dlProg").style.width = `${percentComplete}%`
+                                document.getElementById("dlProgLabel").innerHTML = `${percentComplete}%`
+                            }
+
+                            let blob = new Blob(chunks);
+                            fetch("/format")
+                                .then((res) => res.text())
+                                .then((text) => {
+                                    reader.cancel();
+                                    var url = window.URL.createObjectURL(blob);
+                                    let dlBtn = document.getElementById("redownloada");
+                                    document.getElementById("redownload").hidden = false;
+                                    dlBtn.href = url;
+                                    dlBtn.download = text;
+                                    dlBtn.click();
                                 });
                         } else if (string.startsWith("ERROR")) {
                             reader.cancel();
