@@ -185,7 +185,7 @@ function dl(audioOnly) {
                                 chunks.push(value);
                                 receivedLength += value.length;
 
-                                const percentComplete = (receivedLength / contentLength) * 100;
+                                const percentComplete = Math.round((receivedLength / contentLength) * 100);
                                 console.log(`Received ${receivedLength} of ${contentLength} (${percentComplete}%)`);
 
                                 document.getElementById("dlProg").style.width = `${percentComplete}%`;
