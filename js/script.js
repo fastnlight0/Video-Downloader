@@ -204,7 +204,7 @@ function dl(audioOnly) {
                                     dlBtn.download = text;
                                     dlBtn.click();
                                 });
-                        } else if (string.startsWith("ERROR")) {
+                        } else if (string.includes("ERROR")) {
                             reader.cancel();
                             document.getElementById("mainTxt").innerHTML = "An error occured. See below for more information";
                             document.getElementById("durl").hidden = false;
