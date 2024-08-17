@@ -1,5 +1,5 @@
 import { createServer } from "http";
-import { readFileSync, promises } from "fs";
+import { readFileSync, promises, statSync } from "fs";
 import { execSync, spawn } from "child_process";
 import { Readable } from "stream";
 import path from "path";
@@ -79,7 +79,7 @@ createServer(async (req, res) => {
     } else if (req.url.startsWith("/dlaud/")) {
         downloadVideo(req, res, true);
     } else if (req.url == "/prod") {
-        res.writeHead(200, { "Content-Type": contentType });
+        res.writeHead(200, { "Content-Type": contentType, "Content-Length": statSync("downloads/file." + fileFormat).size });
         res.end(readFileSync("downloads/file." + fileFormat));
         for (const file of await promises.readdir("downloads")) {
             await promises.unlink(path.join("downloads", file));
