@@ -131,7 +131,7 @@ async function downloadVideo(req, res, audioOnly) {
         if (req.headers["format"]) {
             const format = req.headers["format"].trim();
             let regex = /^(?:\d+(?:\+\d+)+)|(?:[a-zA-Z_*]+)$/;
-            if (!regex.test(urll)) {
+            if (!regex.test(format)) {
                 res.writeHead(406, { "Content-Type": "text/plain" });
                 res.end("Invalid format");
                 safeToDownload = true;
@@ -146,7 +146,7 @@ async function downloadVideo(req, res, audioOnly) {
             safeToDownload = true;
             return;
         }
-        args.push("-o", "downloads/file.%(ext)s", urll);
+        args.push("--no-playlist", "--break-on-reject", "--match-filter", "!playlist", "-o", "downloads/file.%(ext)s", urll);
         try {
             const result = spawn("yt-dlp", args);
             result.stdout.setEncoding("utf8");
@@ -161,6 +161,15 @@ async function downloadVideo(req, res, audioOnly) {
             });
             result.on("close", async (code) => {
                 if (!code == 0) {
+                    if (
+                        output.output.includes(
+                            "[info] Encountered a video that did not match filter, stopping due to --break-match-filter"
+                        )
+                    ) {
+                        proxy.output = "ERROR: Playlists are not supported at this time. Please download videos individually.";
+                        return;
+                    }
+                    proxy.output += "\nERROR: An error occured. See above for more information";
                     return;
                 }
                 const files = await promises.readdir("downloads");
