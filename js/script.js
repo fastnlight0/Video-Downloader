@@ -103,7 +103,7 @@ function dl(audioOnly) {
         })
         .then((txt) => {
             if (txt == "0") {
-                document.getElementById("mainTxt").innerHTML = "Invalid URL";
+                document.getElementById("mainTxt").innerHTML = "Invalid/Unsupported URL";
                 setTimeout(() => {
                     document.getElementById("mainTxt").innerHTML = "Enter URL below:";
                 }, 2000);
@@ -245,7 +245,7 @@ document.getElementById("listFormatsBtn").addEventListener("click", () => {
         })
         .then((txt) => {
             if (txt == "0") {
-                document.getElementById("mainTxt").innerHTML = "Invalid URL";
+                document.getElementById("mainTxt").innerHTML = "Invalid/Unsupported URL";
                 setTimeout(() => {
                     document.getElementById("mainTxt").innerHTML = "Enter URL below:";
                 }, 2000);
