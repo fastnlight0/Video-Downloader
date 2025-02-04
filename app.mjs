@@ -130,7 +130,7 @@ async function downloadVideo(req, res, audioOnly) {
         }
         if (req.headers["format"]) {
             const format = req.headers["format"].trim();
-            let regex = /^(?:\d+(?:\+\d+)+)|(?:[a-zA-Z_*]+)$/;
+            let regex = /^(?:\d+(?:\+\d+)+)|(?:[a-zA-Z_*+]+)$/;
             if (!regex.test(format)) {
                 res.writeHead(406, { "Content-Type": "text/plain" });
                 res.end("Invalid format");
@@ -139,7 +139,7 @@ async function downloadVideo(req, res, audioOnly) {
             }
             args.push("-f", format);
         }
-        let regex = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
+        let regex = /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
         if (!regex.test(urll)) {
             res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Invalid URL");
