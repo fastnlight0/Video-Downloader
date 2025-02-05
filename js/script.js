@@ -99,20 +99,9 @@ function dl(audioOnly) {
             if (res.ok) {
                 return res.text();
             }
-            return "0";
+            return "Unable to fetch title. Continuing with download...";
         })
         .then((txt) => {
-            if (txt == "0") {
-                document.getElementById("mainTxt").innerHTML = "Invalid/Unsupported URL";
-                setTimeout(() => {
-                    document.getElementById("mainTxt").innerHTML = "Enter URL below:";
-                }, 2000);
-                document.getElementById("durl").hidden = false;
-                document.getElementById("db").hidden = false;
-                document.getElementById("dba").hidden = false;
-                document.getElementById("toggleButton").hidden = false;
-                throw new Error("Invalid URL");
-            }
             document.getElementById("mainTxt").innerHTML = txt;
         })
         .then(() => {
