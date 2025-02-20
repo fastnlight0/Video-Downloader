@@ -167,6 +167,7 @@ async function downloadVideo(req, res, audioOnly) {
             });
             result.on("close", async (code) => {
                 if (!code == 0) {
+                    safeToDownload = true;
                     if (
                         output.output.includes(
                             "[info] Encountered a video that did not match filter, stopping due to --break-match-filter"
