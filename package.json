@@ -1,15 +1,14 @@
 {
-  "name": "video-downloader",
-  "version": "1.0.0",
-  "description": "User friendly website version of yt-dlp",
-  "main": "app.mjs",
-  "scripts": {
-    "start": "node app.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "engines": {
-    "node": ">=18.x"
-  },
-  "author": "",
-  "license": "UNLICENSED"
+    "name": "video-downloader",
+    "version": "1.0.0",
+    "description": "User friendly website version of yt-dlp",
+    "main": "app.mjs",
+    "scripts": {
+        "start": "node app.mjs"
+    },
+    "engines": {
+        "node": ">=18.x"
+    },
+    "author": "",
+    "license": "UNLICENSED"
 }

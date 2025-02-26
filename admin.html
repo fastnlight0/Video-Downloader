@@ -1,142 +1,152 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <title>Video Downloader Admin</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 3rem;
-            color: #333;
-        }
-
-        #mainTxt {
-            font-size: 1.5rem;
-            color: #555;
-        }
-
-        #durl {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 1rem;
-            width: 80%;
-            max-width: 500px;
-            margin-top: 20px;
-            outline: transparent;
-            transition: all 0.5s ease;
-            text-align: center;
-        }
-
-        #durl:hover:not(:disabled) {
-            border: 2px solid #5d9bfb;
-        }
-
-        #durl:focus {
-            border: 2px solid #4CAF50;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: #fff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #3e8e41;
-        }
-    </style>
-</head>
-
-<body>
-    <h1>Video Downloader Admin</h1>
-    <p id="mainTxt">Welcome Admin</p>
-    <br>
-    <div id="output" style="
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 20px;
-        font-size: 15px;
-        width: 80%;
-        max-width: 500px;
-        margin: 20px auto;
-        background-color: #fff;
-        color: #333;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        text-align: left;
-    ">
-        Logs go here
-    </div>
-    <br>
-    <button id="logsToggle">Stream Logs</button>
-    <br>
-    <button id="serverReset">Reset Server</button>
-    <script>
-        var logsToggle = document.getElementById("logsToggle");
-        var serverReset = document.getElementById("serverReset");
-        var output = document.getElementById("output");
-        var durl = document.getElementById("durl");
-        let logsStream = false;
-        let abortController = new AbortController();
-
-        logsToggle.addEventListener("click", function () {
-            if (logsStream) {
-                logsStream = false;
-                abortController.abort();
-                logsToggle.innerHTML = "Stream Logs";
-            } else {
-                logsStream = true;
-                abortController = new AbortController();
-                logsToggle.innerHTML = "Stop Logs";
-                fetch("stream", { signal: abortController.signal }).then(res => res.body).then(body => {
-                    const reader = body.getReader();
-                    reader.read().then(function processText({ done, value }) {
-                        if (done || !logsStream) {
-                            console.log("Stream complete");
-                            return;
-                        }
-                        let string = new TextDecoder().decode(value);
-                        string = string.replace(/(?:\r\n|\r|\n)/g, '<br>');
-                        console.log(string);
-                        document.getElementById("output").innerHTML = string;
-                        if (string === "Done!") {
-                            fetch("prod").then(res => res.blob()).then(blob => {
-                                fetch("format").then(res => res.text()).then(text => {
-                                    var url = window.URL.createObjectURL(blob);
-                                    let dlBtn = document.getElementById("redownloada")
-                                    document.getElementById("redownload").hidden = false
-                                    dlBtn.href = url;
-                                    dlBtn.download = text;
-                                    dlBtn.click();
-                                })
-                            })
-                        }
-                        reader.read().then(processText);
-                    });
-                }).catch(err => {
-                    console.log(err);
-                });
+    <head>
+        <title>Video Downloader Admin</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f2f2f2;
+                text-align: center;
             }
-        });
-        serverReset.addEventListener("click", function () {
-            serverReset.innerHTML = "Resetting...";
-            fetch("reset").then(res => res.text()).then(text => {
-                console.log(text);
-                serverReset.innerHTML = "Reset Server";
-            })
-        });
-    </script>
-</body>
 
+            h1 {
+                font-size: 3rem;
+                color: #333;
+            }
+
+            #mainTxt {
+                font-size: 1.5rem;
+                color: #555;
+            }
+
+            #durl {
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 10px;
+                font-size: 1rem;
+                width: 80%;
+                max-width: 500px;
+                margin-top: 20px;
+                outline: transparent;
+                transition: all 0.5s ease;
+                text-align: center;
+            }
+
+            #durl:hover:not(:disabled) {
+                border: 2px solid #5d9bfb;
+            }
+
+            #durl:focus {
+                border: 2px solid #4caf50;
+            }
+
+            button {
+                background-color: #4caf50;
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 8px;
+                margin-top: 20px;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+
+            button:hover {
+                background-color: #3e8e41;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>Video Downloader Admin</h1>
+        <p id="mainTxt">Welcome Admin</p>
+        <br />
+        <div
+            id="output"
+            style="
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 20px;
+                font-size: 15px;
+                width: 80%;
+                max-width: 500px;
+                margin: 20px auto;
+                background-color: #fff;
+                color: #333;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+                text-align: left;
+            "
+        >
+            Logs go here
+        </div>
+        <br />
+        <button id="logsToggle">Stream Logs</button>
+        <br />
+        <button id="serverReset">Reset Server</button>
+        <script>
+            var logsToggle = document.getElementById("logsToggle");
+            var serverReset = document.getElementById("serverReset");
+            var output = document.getElementById("output");
+            var durl = document.getElementById("durl");
+            let logsStream = false;
+            let abortController = new AbortController();
+
+            logsToggle.addEventListener("click", function () {
+                if (logsStream) {
+                    logsStream = false;
+                    abortController.abort();
+                    logsToggle.innerHTML = "Stream Logs";
+                } else {
+                    logsStream = true;
+                    abortController = new AbortController();
+                    logsToggle.innerHTML = "Stop Logs";
+                    fetch("stream", { signal: abortController.signal })
+                        .then((res) => res.body)
+                        .then((body) => {
+                            const reader = body.getReader();
+                            reader.read().then(function processText({ done, value }) {
+                                if (done || !logsStream) {
+                                    console.log("Stream complete");
+                                    return;
+                                }
+                                let string = new TextDecoder().decode(value);
+                                string = string.replace(/(?:\r\n|\r|\n)/g, "<br>");
+                                console.log(string);
+                                document.getElementById("output").innerHTML = string;
+                                if (string === "Done!") {
+                                    fetch("prod")
+                                        .then((res) => res.blob())
+                                        .then((blob) => {
+                                            fetch("format")
+                                                .then((res) => res.text())
+                                                .then((text) => {
+                                                    var url = window.URL.createObjectURL(blob);
+                                                    let dlBtn = document.getElementById("redownloada");
+                                                    document.getElementById("redownload").hidden = false;
+                                                    dlBtn.href = url;
+                                                    dlBtn.download = text;
+                                                    dlBtn.click();
+                                                });
+                                        });
+                                }
+                                reader.read().then(processText);
+                            });
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        });
+                }
+            });
+            serverReset.addEventListener("click", function () {
+                serverReset.innerHTML = "Resetting...";
+                fetch("reset")
+                    .then((res) => res.text())
+                    .then((text) => {
+                        console.log(text);
+                        serverReset.innerHTML = "Reset Server";
+                    });
+            });
+        </script>
+    </body>
 </html>

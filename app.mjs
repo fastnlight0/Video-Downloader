@@ -44,7 +44,8 @@ createServer(async (req, res) => {
         res.end(readFileSync("./js/script.js", "utf8"));
     } else if (req.url.startsWith("/tim/")) {
         let urll = req.url.replace("/tim/", "");
-        let regex = /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
+        let regex =
+            /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
         if (!regex.test(urll)) {
             res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Invalid URL");
@@ -52,7 +53,10 @@ createServer(async (req, res) => {
             return;
         }
         try {
-            const result = execSync('yt-dlp --break-on-reject --match-filter !playlist --print "%(channel)s - %(duration>%H:%M:%S)s - %(title)s" ' + urll);
+            const result = execSync(
+                'yt-dlp --break-on-reject --match-filter !playlist --print "%(channel)s - %(duration>%H:%M:%S)s - %(title)s" ' +
+                    urll
+            );
             videoName = result.toString("utf8").split(" - ").slice(2).join(" - ").trim();
             res.writeHead(200, { "Content-Type": "text/plain" });
             res.end(result.toString("utf8"));
@@ -90,7 +94,8 @@ createServer(async (req, res) => {
     } else if (req.url.startsWith("/listformats/")) {
         let urll = req.url.replace("/listformats/", "");
         try {
-            let regex = /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
+            let regex =
+                /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
             if (!regex.test(urll)) {
                 res.writeHead(406, { "Content-Type": "text/plain" });
                 res.end("Invalid URL");
@@ -145,7 +150,8 @@ async function downloadVideo(req, res, audioOnly) {
             }
             args.push("-f", format);
         }
-        let regex = /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
+        let regex =
+            /^(?:http(?:s)?:\/\/.)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_+.~#?&/=]*(?<!.*&{2,}.*))$/;
         if (!regex.test(urll)) {
             res.writeHead(406, { "Content-Type": "text/plain" });
             res.end("Invalid URL");
