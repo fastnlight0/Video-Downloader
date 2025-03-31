@@ -141,7 +141,7 @@ async function downloadVideo(req, res, audioOnly) {
         }
         if (req.headers["format"]) {
             const format = req.headers["format"].trim();
-            let regex = /^(?:\d+(?:\+\d+)+)|(?:[a-zA-Z_*+]+)$/;
+            let regex = /^(?:\d+(?:\+\d+)?)|(?:[a-zA-Z_*+]+)$/;
             if (!regex.test(format)) {
                 res.writeHead(406, { "Content-Type": "text/plain" });
                 res.end("Invalid format");
