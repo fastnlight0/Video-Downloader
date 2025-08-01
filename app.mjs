@@ -210,8 +210,6 @@ async function downloadVideo(req, res, audioOnly) {
                         "+genpts",
                         "-i",
                         "downloads/file." + ress,
-                        "-r",
-                        "24",
                         "downloads/file." + targetFileFormat,
                         "-hide_banner",
                         "-loglevel",
