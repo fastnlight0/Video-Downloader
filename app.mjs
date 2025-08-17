@@ -200,21 +200,16 @@ async function downloadVideo(req, res, audioOnly) {
                 }
                 if (targetFileFormat != "keep" && targetFileFormat != ress) {
                     proxy.output = `Downloaded file was a ${ress}, converting to ${targetFileFormat}. This may take a while...\n`;
-                    let args = [];
-                    const child = spawn("ffmpeg", [
-                        "-y",
-                        "-v",
-                        "quiet",
-                        "-stats",
-                        "-fflags",
-                        "+genpts",
-                        "-i",
-                        "downloads/file." + ress,
-                        "downloads/file." + targetFileFormat,
-                        "-hide_banner",
-                        "-loglevel",
-                        "error",
-                    ]);
+                    let args = ["-y", "-v", "quiet", "-stats", "-fflags", "+genpts", "-i", "downloads/file." + ress];
+
+                    // Add frame rate conversion if specified
+                    if (req.headers["framerate"] === "1") {
+                        args.push("-r", "24");
+                    }
+
+                    args.push("downloads/file." + targetFileFormat, "-hide_banner", "-loglevel", "error");
+
+                    const child = spawn("ffmpeg", args);
                     child.stdout.setEncoding("utf8");
                     child.stdout.on("data", (data) => {
                         data = data.toString("utf8");

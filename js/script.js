@@ -126,6 +126,7 @@ function dl(audioOnly) {
             if (document.querySelector('input[name="formatR"]:checked').value == "2") {
                 heads.format = document.getElementById("customFormatInput").value;
             }
+            heads.framerate = document.querySelector('input[name="framerateR"]:checked').value;
             fetch((audioOnly ? "/dlaud/" : "/dl/") + document.getElementById("durl").value, { headers: heads }).then(
                 async function (res) {
                     if (res.status != 202) {
